@@ -12,7 +12,39 @@ description: Write a parallel execution plan in two phases — quick shortlist w
 ## Pre-flight
 
 1. Verify `docs/fsa-tools/plans/` exists in the current project. Create it if missing.
-2. Read context: `pwd`, `git log --oneline -5`, `git status --short`.
+2. Read context: `pwd`, `git log --oneline -10`, `git status --short`.
+3. Read any relevant spec or design doc in `docs/` that matches the topic.
+
+## Exploration (before asking anything)
+
+Understand the terrain before asking questions. This is not optional.
+
+1. Read the files most likely affected by the task (grep for key symbols, read entry points).
+2. Identify: what already exists, what is missing, what is unclear.
+3. Form a working hypothesis of what the plan will decompose into.
+
+## Scope check
+
+Before proceeding, assess scale:
+
+- If the request describes multiple independent subsystems or phases, flag it. Don't refine details of a project that needs decomposition first. Help the operator split into sub-plans; brainstorm the first sub-plan through the normal flow. Each sub-plan gets its own plan → execution cycle.
+- If the scope is appropriate, continue.
+
+## Clarifying questions (one at a time)
+
+Ask questions one at a time — never a list. Each question as multiple-choice with a recommended option.
+
+Focus on: what problem is being solved, hard constraints, success criteria, preferences that affect decomposition (worktree, model selection, review opt-in).
+
+Wait for each answer before asking the next. Stop when you have enough to propose approaches.
+
+## Approach proposal
+
+Before producing the shortlist, propose 2–3 approaches with trade-offs. Lead with your recommendation and explain why.
+
+Examples of meaningful axes: sequential-safe vs. maximally parallel, fine-grained tasks vs. coarse clusters, thin path vs. full review coverage.
+
+Present approaches conversationally. Wait for the operator to choose.
 
 ## Phase 1 — Shortlist
 
@@ -22,13 +54,11 @@ Produce a high-level decomposition (clusters and tasks with a DAG sketch). Stop 
 
 ### Steps
 
-1. Ask 3–5 high-leverage questions about the task. Each one as multiple-choice with a recommended option. Examples of good questions: scope (which subprojects), preferred model for heavy tasks, worktree usage, review opt-in vs. thin path.
-2. Wait for answers.
-3. Compose a shortlist in the format defined in `phase1-shortlist.md`.
-4. Run the DAG audit (`dag-audit.md`) on every declared dependency.
-5. Present the shortlist.
-6. **Checkpoint:** "Confirm shortlist? If yes, I move to deep investigation (file reads, full prompts). If you want to change X/Y/Z, I adjust first."
-7. Wait for confirmation.
+1. Compose a shortlist in the format defined in `phase1-shortlist.md`, reflecting the chosen approach.
+2. Run the DAG audit (`dag-audit.md`) on every declared dependency.
+3. Present the shortlist.
+4. **Checkpoint:** "Confirm shortlist? If yes, I move to deep investigation (file reads, full prompts). If you want to change X/Y/Z, I adjust first."
+5. Wait for confirmation.
 
 ## Phase 2 — Full plan (after the operator confirms)
 

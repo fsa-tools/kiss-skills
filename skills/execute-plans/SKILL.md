@@ -69,11 +69,21 @@ After every batch returns:
 - Run a partial DoD check if applicable (test suite, type check).
 - If anything looks off, escalate to the operator before launching the next wave.
 
-### 8. Final report
+### 8. Global review
 
-When `/goal` detects the DoD is green:
+When `/goal` detects the DoD is green, before declaring done:
+
+1. Collect the full diff: `git diff <base-branch>...HEAD` (use `main` or `master` if no base branch is known).
+2. Invoke `fsa-tools:review` with: the plan file path, the full diff, and a one-line summary of all tasks completed.
+3. If the reviewer raises blockers (correctness bugs, invariant violations, missed requirements): escalate to the operator with the reviewer's findings before proceeding. Do not auto-fix.
+4. If the reviewer is clean or raises only non-blocking findings: continue to the final report.
+
+### 9. Final report
+
+After the global review passes:
 
 - Summary: N tasks completed in M waves, models used.
+- Reviewer outcome: clean / non-blocking findings listed.
 - Git state: branch, commit count, worktree path if any.
 - Suggest: `/fsa-tools:finish-branch`.
 
