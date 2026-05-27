@@ -11,7 +11,8 @@ See [design principles](docs/design/principles.md) and [design rationale](docs/d
 ## Install
 
 ```
-claude plugin install github.com/fsa-tools/kiss-skills
+claude plugin marketplace add fsa-tools/kiss-skills
+claude plugin install fsa-tools@fsa-tools
 ```
 
 ## Quickstart
