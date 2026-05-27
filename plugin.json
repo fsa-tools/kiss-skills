@@ -1,0 +1,14 @@
+{
+  "name": "fsa-tools",
+  "version": "0.1.0",
+  "description": "Parallelism-first skill suite — write plans as DAG of clusters, execute via parallel subagent dispatch with /goal termination.",
+  "author": "fsa-tools",
+  "repository": "https://github.com/fsa-tools/kiss-skills",
+  "skills": [
+    "skills/writing-plans",
+    "skills/execute-plans",
+    "skills/worktree",
+    "skills/review",
+    "skills/finish-branch"
+  ]
+}
