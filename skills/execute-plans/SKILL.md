@@ -44,7 +44,7 @@ The harness will re-run that command after each task and stop the session when i
 
 For each task in the plan:
 
-- Name: `Cluster N / Task N.M`
+- Name: `Cluster N / Task N.M [model]` — e.g. `Cluster 1 / Task 1.1 [sonnet]`
 - Model and prompt: from the plan
 - `addBlockedBy`: intra-cluster dependencies (task ids) plus inter-cluster dependencies (all task ids in the blocking cluster)
 
