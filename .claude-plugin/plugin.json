@@ -1,6 +1,5 @@
 {
   "name": "fsa-tools",
-  "displayName": "fsa-tools",
   "description": "Parallelism-first skill suite — write plans as a DAG of clusters, execute via parallel subagent dispatch with /goal termination.",
   "version": "0.1.0",
   "author": {
@@ -16,6 +15,5 @@
     "dag",
     "execution",
     "orchestration"
-  ],
-  "skills": "./skills/"
+  ]
 }
