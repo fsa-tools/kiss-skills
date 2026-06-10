@@ -28,7 +28,7 @@ Cluster {
 Task {
   id: string           // "N.M" — cluster.task
   name: string         // text in "#### Task N.M: <Name>"
-  model: string        // text between brackets: haiku | sonnet | opus
+  model: string        // text between brackets: haiku | sonnet | opus | fable
   reviewer: boolean    // true if "+reviewer" is present in the title
   blockedBy: string[]  // task ids declared in "Intra-cluster dependency:"
   prompt: string       // contents of the code block under "Prompt for subagent"

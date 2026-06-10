@@ -20,7 +20,7 @@ For every returned task:
 2. Decide by failure type:
    - **Simple failure** (missing file, typo, obvious assertion miss): retry with the same model and additional context.
      Retry prompt: original + `FEEDBACK: The command <cmd> returned:\n<output>\nFix exactly this error.`
-   - **Complex failure** (logic bug, wrong design): upgrade the model (haiku → sonnet, sonnet → opus).
+   - **Complex failure** (logic bug, wrong design): upgrade the model (haiku → sonnet, sonnet → opus, opus → fable). The opus → fable step is the last rung before operator escalation — only pay the ~2x cost after opus has demonstrably failed.
    - **After 2 retries**: escalate to the operator with the task id, original prompt, errors, and a history of what was tried.
 
 ### Review rejection

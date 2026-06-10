@@ -24,7 +24,8 @@ Cluster 2 [depends on Cluster 1] — <Theme>
 
 `Task X.Y: <Name> [<model>] [+reviewer]`
 
-- `[<model>]` is required: `haiku` | `sonnet` | `opus`.
+- `[<model>]` is required: `haiku` | `sonnet` | `opus` | `fable`.
+- `fable` is exceptional: it requires a one-line justification in the task body (like `blockedBy`) and at most one `fable` task per plan. If a plan "needs" several, the decomposition is wrong — split the task.
 - `+reviewer` is optional. Add only when review is wanted; the default is no reviewer (thin path).
 - `Dependency:` appears only when there is an intra-cluster dependency.
 - `Cluster N [depends on Cluster M]` appears only when there is an inter-cluster dependency.
@@ -38,6 +39,7 @@ Cluster 2 [depends on Cluster 1] — <Theme>
 | `haiku` | Trivial tasks: write a config file, fixture, boilerplate, simple cleanup. |
 | `sonnet` | Moderate tasks: clear feature implementation, localized refactor, documentation. |
 | `opus` | Complex tasks: obscure root-cause debugging, interface design, business-critical logic. |
+| `fable` | Exceptional only (~2x opus cost). A wrong design that is expensive to redo: cross-cutting architecture, critical financial logic, or debugging that already failed on opus. Requires justification; max one per plan. Default for the high tier remains `opus`. |
 
 ## Prompt checklist (Phase 2)
 

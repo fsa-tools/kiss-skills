@@ -104,7 +104,7 @@ Single verifiable command:
 5. **Every task has a verification command.** Shell command, returns exit 0 when the task is done. Used by the execute skill after the subagent returns.
 6. **Every task has a self-contained subagent prompt** — paths, context, constraints, expected output, the verification command, and a "return when" clause.
 7. **No per-task worktree flag.** Worktree is a plan-level decision.
-8. **No `effort` field on tasks.** Model selection (haiku/sonnet/opus) is the only tunable.
+8. **No `effort` field on tasks.** Model selection (haiku/sonnet/opus/fable) is the only tunable. `fable` is exceptional: one-line justification required, max one per plan.
 9. **The "Launch order" section is derived from the DAG**, not hand-written. It groups tasks into phases by dependency depth.
 
 ## Task grammar
@@ -113,7 +113,7 @@ Single verifiable command:
 
 - `X.Y` — cluster.task numeric id (1.1, 1.2, 2.1).
 - `<Name>` — short imperative verb phrase ("Create the X file", "Fix Y in Z").
-- `[<model>]` — required. One of `haiku`, `sonnet`, `opus`.
+- `[<model>]` — required. One of `haiku`, `sonnet`, `opus`, `fable` (exceptional — see rule 8).
 - `+reviewer` — optional. When present, the execute skill invokes `fsa-tools:review` after the subagent returns.
 
 ## Worktree header values
