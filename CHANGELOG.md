@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-06-09
+
+### Added
+
+- `fable` as an exceptional fourth model tier in the task grammar (`haiku | sonnet | opus | fable`). Gated: one-line justification required, max one `fable` task per plan, `opus` remains the default for the high tier.
+- Escalation ladder in `execute-plans` verification loop gains `opus → fable` as the last rung before operator escalation.
+
+## [0.2.0] — 2026-06-09
+
+_Backfilled entry — released without a changelog entry._
+
+### Changed
+
+- Strengthened `writing-plans` brainstorming and added a global review step to `execute-plans`.
+- Task list entries now show the model name.
+- Plugin manifest moved to `.claude-plugin/plugin.json`; root `plugin.json` removed.
+- Marketplace source fixed to clone the full repo.
+
 ## [0.1.0] — 2026-05-26
 
 ### Added
