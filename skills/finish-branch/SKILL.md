@@ -23,6 +23,7 @@ After plan execution completes, show the operator the branch state and let them 
    4. Abandon: `git checkout main && git branch -D <branch> && git worktree remove <path>`.
 4. Execute the chosen option.
 5. If a worktree was used, run `git worktree remove <path>` at the end — except when the operator chose option 3 (leave as-is).
+6. Close-out handoff (every option except abandon): integration is not release close-out. End by stating that the round is still open — versioning, changelog, tracking, memory, deploy — and defer to the operator's close-out orchestrator (e.g. `/done`). Never suggest invoking a deploy skill directly from here.
 
 ## Invoke
 
