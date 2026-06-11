@@ -6,7 +6,7 @@
 
 ### Added
 
-- `finish-branch` gains a close-out handoff step: after executing any integration option except abandon, the skill states that the round is still open (versioning, changelog, tracking, memory, deploy) and defers to the operator's close-out orchestrator (e.g. `/done`). Deploy skills must never be suggested directly. (#1)
+- `finish-branch` gains a close-out handoff step: after executing any integration option except abandon, the skill states that the round is still open (versioning, changelog, tracking, memory, deploy) and defers to the operator's own close-out flow. Deploy skills must never be suggested directly. (#1)
 
 ## [0.3.0] — 2026-06-09
 
