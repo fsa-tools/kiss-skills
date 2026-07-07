@@ -32,7 +32,7 @@ Concrete simplifications:
 
 - Plans are plain markdown. No YAML schema, no JSON validation.
 - One global Definition of Done per plan. No per-cluster or per-task DoDs to aggregate.
-- Termination via `/goal` (a harness feature). The execute skill does not run its own done-detection loop.
+- Termination via the plan's Definition of Done command, gated on its exit code. The execute skill runs it once at the end, not a per-loop done-detection heuristic. (`/goal` is a native UI command the operator may run, but the agent cannot invoke it from inside execution.)
 - No retry-with-backoff. After 2 retries, escalate to the operator. Hide nothing.
 - Markdown skill files live in `skills/<name>/SKILL.md`. Helper docs live next to the SKILL.md they support.
 - No state outside the working directory and git.

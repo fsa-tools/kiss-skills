@@ -22,11 +22,13 @@ Two-phase planning splits the problem:
 
 The checkpoint is the key element. It puts expensive work behind a confirmation gate.
 
-## Why /goal as the termination signal
+## Why the Definition of Done command as the termination signal
 
-A plan declares a single global Definition of Done: a shell command that returns exit 0 when the work is finished. The execute skill activates `/goal <command>` at the start of execution; the harness re-runs that command after each task and stops when it passes.
+A plan declares a single global Definition of Done: a shell command that returns exit 0 when the work is finished. Once the dispatch loop reports all tasks complete, the execute skill runs that command via Bash and gates on its exit code — exit 0 means done, exit ≠ 0 escalates to the operator.
 
-This removes the need for the execute skill to manage its own "are we done?" loop. Termination is declarative and verifiable from outside the skill.
+This keeps termination declarative and verifiable, without a fuzzy per-loop "are we done?" heuristic: the stop criterion is a concrete exit code the agent owns end-to-end.
+
+`/goal` (a native UI command that re-runs a condition and auto-stops the session) can express the same criterion, but only the operator can run it — the agent cannot invoke `/goal` from inside execution, so the skill does not depend on it.
 
 ## Why model-per-task
 

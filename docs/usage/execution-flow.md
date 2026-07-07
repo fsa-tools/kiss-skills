@@ -1,6 +1,6 @@
 # Execution Flow
 
-`fsa-tools:execute-plans` reads a plan, activates a global termination goal, dispatches subagents per cluster in DAG-respecting waves, and stops when the Definition of Done passes.
+`fsa-tools:execute-plans` reads a plan, dispatches subagents per cluster in DAG-respecting waves, and stops when the Definition of Done command passes (exit-code gated).
 
 ## Steps
 
@@ -28,15 +28,9 @@ Extract from the plan (full protocol in `skills/execute-plans/parser.md`):
 
 Invoke `fsa-tools:worktree`, passing the plan slug and the worktree header value. The helper either creates a worktree and returns `(path, branch)`, or skips when the header is `none`.
 
-### 5. Activate /goal
+### 5. Hold the Definition of Done
 
-First command of the execution session:
-
-```
-/goal <DoD command from plan>
-```
-
-The harness re-runs that command after each task and stops the session when it passes.
+Keep the DoD command for the terminal gate in step 9. The agent does not invoke `/goal` — that is a native UI command only the operator can run. Termination is agent-owned: run the DoD command via Bash at the end and gate on its exit code.
 
 ### 6. TaskCreate per task
 
@@ -70,7 +64,7 @@ After every dispatch batch returns:
 
 ### 9. Final report
 
-When `/goal` detects the DoD is green:
+Once all tasks are complete, run the DoD command via Bash. Exit ≠ 0 escalates to the operator; exit 0 means done:
 
 - Summary: N tasks completed in M waves, models used.
 - Git state: branch, commit count, worktree path if any.
@@ -89,7 +83,7 @@ t=1    Re-poll. available = [2.1, 2.2]  (cluster 2 unblocked)
        Dispatch a single message with 2 Agent calls (parallel).
        Both return.
        Verify, mark completed.
-t=2    /goal detects DoD green. Session ends.
+t=2    All tasks complete. Run the DoD command → exit 0. Done.
 ```
 
 Wall-clock: 2 waves versus 4 if serialized.

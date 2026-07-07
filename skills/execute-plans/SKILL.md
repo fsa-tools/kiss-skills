@@ -1,6 +1,6 @@
 ---
 name: execute-plans
-description: Execute a plan from docs/fsa-tools/plans/ (auto-detects the most recent if no argument). Parallel-dispatches clusters via the Agent tool, respects the DAG, and uses /goal to terminate when the global Definition of Done passes. Use in a fresh session.
+description: Execute a plan from docs/fsa-tools/plans/ (auto-detects the most recent if no argument). Parallel-dispatches clusters via the Agent tool, respects the DAG, and terminates when the global Definition of Done command passes (exit-code gated). Use in a fresh session.
 ---
 
 # fsa-tools:execute-plans
@@ -30,15 +30,11 @@ Read the file and extract (full protocol in `parser.md`):
 
 Invoke `fsa-tools:worktree`, passing the plan slug and the worktree header value. Receive back either `(absolute path, branch name)` or a `none` signal.
 
-### 4. Activate /goal
+### 4. Hold the Definition of Done
 
-The first command of the execution session:
+Keep the DoD command (from step 2) for the terminal gate in step 8. It is a shell command that returns exit 0 when the plan is complete.
 
-```
-/goal <DoD command from plan>
-```
-
-The harness will re-run that command after each task and stop the session when it passes.
+Do **not** try to invoke `/goal` — it is a native UI command, run by the operator, and cannot be called via the Skill tool from inside execution. The agent owns termination itself, by running the DoD command via Bash and gating on its exit code (step 8).
 
 ### 5. TaskCreate per task
 
@@ -69,14 +65,15 @@ After every batch returns:
 - Run a partial DoD check if applicable (test suite, type check).
 - If anything looks off, escalate to the operator before launching the next wave.
 
-### 8. Global review
+### 8. Definition of Done gate + global review
 
-When `/goal` detects the DoD is green, before declaring done:
+Once the dispatch loop reports all tasks complete, before declaring done:
 
-1. Collect the full diff: `git diff <base-branch>...HEAD` (use `main` or `master` if no base branch is known).
-2. Invoke `fsa-tools:review` with: the plan file path, the full diff, and a one-line summary of all tasks completed.
-3. If the reviewer raises blockers (correctness bugs, invariant violations, missed requirements): escalate to the operator with the reviewer's findings before proceeding. Do not auto-fix.
-4. If the reviewer is clean or raises only non-blocking findings: continue to the final report.
+1. Run the plan's Definition of Done command via Bash. This exit-code gate is the termination signal — the agent owns it (there is no native `/goal` auto-stop). If it returns exit ≠ 0, escalate to the operator with the output; do not declare done.
+2. Collect the full diff: `git diff <base-branch>...HEAD` (use `main` or `master` if no base branch is known).
+3. Invoke `fsa-tools:review` with: the plan file path, the full diff, and a one-line summary of all tasks completed.
+4. If the reviewer raises blockers (correctness bugs, invariant violations, missed requirements): escalate to the operator with the reviewer's findings before proceeding. Do not auto-fix.
+5. If the reviewer is clean or raises only non-blocking findings: continue to the final report.
 
 ### 9. Final report
 

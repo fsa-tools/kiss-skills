@@ -16,7 +16,7 @@ LOOP:
 
   if available.empty:
     if all_tasks_completed:
-      // /goal will detect DoD green and end the session
+      // All tasks done → run the terminal DoD gate (SKILL.md step 8)
       break
     else:
       // tasks are blocked waiting on predecessors
