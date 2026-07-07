@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-07-07
+
+### Fixed
+
+- `execute-plans` no longer instructs the agent to activate `/goal` — a native UI command that only the operator can run and that the agent cannot invoke via the Skill tool. Termination is now agent-owned: once all tasks complete, the skill runs the plan's Definition of Done command via Bash and gates on its exit code (exit 0 → global review; exit ≠ 0 → escalate). Design docs (`principles.md`, `design-rationale.md`, `execution-flow.md`) and the dispatcher loop updated to match.
+
 ## [0.3.1] — 2026-06-11
 
 ### Added
