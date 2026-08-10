@@ -18,7 +18,28 @@ Cluster 2 [depends on Cluster 1] — <Theme>
     Task 2.1: <Action> [<model>]
         - Description: <1 line>
         - DoD: <shell command>
+
+Estimate: N tasks, fits one sprint.
 ```
+
+## Sizing line
+
+Every shortlist ends with one estimate line:
+
+Estimate: N tasks, fits one sprint.
+
+When the task count exceeds the limit (default 12), the shortlist is presented sliced instead, and the estimate names the cut:
+
+Sprint 1 — <Theme> (N tasks)
+    Cluster 1 — <Theme>
+    Cluster 2 — <Theme>
+
+Sprint 2 — <Theme> (N tasks)
+    Cluster 3 — <Theme>
+
+Estimate: N tasks over 2 sprints. Boundary after Cluster 2 — <one-line rationale>.
+
+A boundary falls at a cluster end, never inside one, and two sprints never touch the same file. The Definition of Done stays single and global.
 
 ## Task grammar
 

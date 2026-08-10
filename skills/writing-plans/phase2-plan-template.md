@@ -11,6 +11,7 @@ The shape of the file saved at `docs/fsa-tools/plans/YYYY-MM-DD-<topic>.md`. Thi
 
 - **Generated:** YYYY-MM-DD
 - **Worktree:** recommended | required | none
+- **Sprints:** N
 
 ## Context
 
@@ -106,6 +107,27 @@ Single verifiable command:
 7. **No per-task worktree flag.** Worktree is a plan-level decision.
 8. **No `effort` field on tasks.** Model selection (haiku/sonnet/opus/fable) is the only tunable. `fable` is exceptional: one-line justification required, max one per plan.
 9. **The "Launch order" section is derived from the DAG**, not hand-written. It groups tasks into phases by dependency depth.
+10. **Sprints are optional and backwards compatible.** A plan that fits one session declares no sprints and is parsed exactly as before. When the plan is sliced, the header `- **Sprints:** N` is present and the `## Clusters` heading is replaced by one `## Sprint N — <Theme>` heading per sprint; each `### Cluster N` belongs to the nearest preceding sprint heading. A sprint boundary falls at a cluster end, never inside one, and two sprints never touch the same file. The Definition of Done stays single and global — sprints do not get their own.
+
+## Sprint header
+
+`- **Sprints:** N` is present only when the plan is sliced across sessions. Absent means a single implicit sprint containing every cluster — the common case, which gains no syntax.
+
+A sliced plan replaces the `## Clusters` heading with one heading per sprint:
+
+```markdown
+## Sprint 1 — <Theme>
+
+### Cluster 1 — <Theme>
+
+### Cluster 2 — <Theme>
+
+## Sprint 2 — <Theme>
+
+### Cluster 3 — <Theme>
+```
+
+Cluster and task headings are unchanged. A cluster belongs to the nearest preceding sprint heading.
 
 ## Worktree header values
 

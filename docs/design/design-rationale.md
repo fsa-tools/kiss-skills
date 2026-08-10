@@ -54,6 +54,18 @@ Most well-scoped tasks with a verifiable Definition of Done do not need a second
 
 Spec compliance runs before code quality. A patch that does not do what was asked is not worth a style review.
 
+## Why re-observation instead of recorded state
+
+A plan that spans sprints ends its session at every sprint boundary. The next session starts cold: no memory of the previous run, just the repository and a continuity file. What that resumed session needs to know splits cleanly into two kinds of fact — what the repository already proves, and what only a human decision or an observed run could have told it.
+
+Task completion belongs entirely to the first kind. A task is done exactly when its `verification:` command exits 0 — that is the whole purpose of the field, not an incidental property of it. Re-running that command at resume time costs nothing conceptually: it is the same check the task was defined against, just executed a session later. The same holds for branch, HEAD, dirty paths, and per-task and DoD exit codes — each one is a fact the working tree and git already hold, obtainable by asking rather than by remembering.
+
+Recording a completion list alongside that would create a second source of truth. The moment a task's verification result and a stored "done" flag can diverge — a revert, a manual fix, a flaky check that passed once and regressed — the plan has two answers to "is this task finished" and no principled way to prefer one. That divergence is the exact failure mode the sprint boundary exists to prevent: a resumed session that trusts a stale record instead of the state actually in front of it.
+
+The continuity file is left holding only what re-observation cannot recover: decisions made along the way, gotchas discovered, and metrics observed during the run. None of that lives anywhere else in the repository, so it is the one category worth the cost of writing down.
+
+That cost is real. Re-running every verification command on resume is not free — some are slow, some touch external systems — and it is the price paid deliberately for one source of truth instead of two.
+
 ## KISS decisions
 
 - Plans are markdown files, not YAML or JSON. Operator readability beats schema enforcement.

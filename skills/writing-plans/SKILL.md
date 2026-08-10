@@ -36,15 +36,7 @@ Ask questions one at a time — never a list. Each question as multiple-choice w
 
 Focus on: what problem is being solved, hard constraints, success criteria, preferences that affect decomposition (worktree, model selection, review opt-in).
 
-Wait for each answer before asking the next. Stop when you have enough to propose approaches.
-
-## Approach proposal
-
-Before producing the shortlist, propose 2–3 approaches with trade-offs. Lead with your recommendation and explain why.
-
-Examples of meaningful axes: sequential-safe vs. maximally parallel, fine-grained tasks vs. coarse clusters, thin path vs. full review coverage.
-
-Present approaches conversationally. Wait for the operator to choose.
+Wait for each answer before asking the next. Stop when you have enough to decompose.
 
 ## Phase 1 — Shortlist
 
@@ -54,11 +46,29 @@ Produce a high-level decomposition (clusters and tasks with a DAG sketch). Stop 
 
 ### Steps
 
-1. Compose a shortlist in the format defined in `phase1-shortlist.md`, reflecting the chosen approach.
+1. Compose a shortlist in the format defined in `phase1-shortlist.md`. The skill decides the decomposition itself — parallelism-first per `docs/design/principles.md` P1 — and records a one-line rationale for the shape chosen. Do not ask the operator to pick an approach.
 2. Run the DAG audit (`dag-audit.md`) on every declared dependency.
-3. Present the shortlist.
-4. **Checkpoint:** "Confirm shortlist? If yes, I move to deep investigation (file reads, full prompts). If you want to change X/Y/Z, I adjust first."
-5. Wait for confirmation.
+3. Size the shortlist (see `## Sizing` below) and carry the estimate into the checkpoint.
+4. Present the shortlist.
+5. **Checkpoint:** "Confirm shortlist? If yes, I move to deep investigation (file reads, full prompts). If you want to change X/Y/Z, I adjust first."
+6. Wait for confirmation.
+
+## Sizing
+
+Run at the end of Phase 1, before the checkpoint. Count the tasks in the shortlist and compare against the limit. The default limit is **12 tasks per sprint**.
+
+- **Within the limit:** the checkpoint carries one extra line — `Estimate: N tasks, fits one sprint.` No sprint syntax reaches the plan.
+- **Over the limit:** the checkpoint additionally proposes sprint boundaries — the task count per sprint and the rationale for each cut — and asks the operator to confirm or adjust the cut.
+
+Sprint boundary rules:
+
+- A boundary falls at a cluster end, never inside one.
+- No file overlap between sprints. Two sprints touching the same file make the second sprint's starting state unpredictable.
+- The global Definition of Done stays single and unsplit. Sprints do not get their own.
+
+Limit resolution: default 12, overridden by natural language in the invocation ("short sprints", "limit 8"). Never ask for the limit as a standalone question — in the common case the answer changes nothing, and a question whose answer never changes anything becomes the next rubber stamp.
+
+Task count is the sizing unit because it is the only quantity this skill counts deterministically, and orchestrator context grows roughly linearly in it: about one dispatch prompt, one result summary, and one verification output per task. The 12 default is a starting guess, not a measurement.
 
 ## Phase 2 — Full plan (after the operator confirms)
 

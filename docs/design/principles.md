@@ -35,4 +35,5 @@ Concrete simplifications:
 - Termination via the plan's Definition of Done command, gated on its exit code. The execute skill runs it once at the end, not a per-loop done-detection heuristic. (`/goal` is a native UI command the operator may run, but the agent cannot invoke it from inside execution.)
 - No retry-with-backoff. After 2 retries, escalate to the operator. Hide nothing.
 - Markdown skill files live in `skills/<name>/SKILL.md`. Helper docs live next to the SKILL.md they support.
-- No state outside the working directory and git.
+- No state outside the working directory and git. The one persisted artifact is the continuity file (`docs/fsa-tools/continuity/<plan-slug>.md`) — plain markdown in the target project's working tree, versioned in git. No database, no schema validator, no store outside the repo.
+- Persist only the non-re-derivable. Task completion, exit codes, and git state are re-observed at resume time, never recorded. A recorded copy is a second source of truth that can disagree with the first.

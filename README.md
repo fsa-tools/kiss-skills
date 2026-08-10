@@ -37,6 +37,10 @@ claude plugin install fsa-tools@fsa-tools
 | `fsa-tools:review` | helper | Spec-compliance and code-quality review (opt-in via `+reviewer`) |
 | `fsa-tools:finish-branch` | helper | Post-execution branch handling and PR creation |
 
+## Cross-session execution
+
+A plan that does not fit one session declares sprints (`- **Sprints:** N` plus `## Sprint N — <Theme>` sections). `execute-plans` stops at each sprint boundary and ends the session; the operator opens a fresh session to continue. On resume, the skill re-observes the repository — branch, git state, verification exit codes — instead of trusting a stored record. The continuity file at `docs/fsa-tools/continuity/<plan-slug>.md` holds only decisions, gotchas, and observed run metrics. Plans without sprints are unaffected.
+
 ## Documentation
 
 - [Plan schema](docs/usage/plan-schema.md)

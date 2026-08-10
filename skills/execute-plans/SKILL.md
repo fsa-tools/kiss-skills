@@ -24,19 +24,32 @@ Read the file and extract (full protocol in `parser.md`):
 - Global Definition of Done (shell command from the "Definition of Done" section)
 - Invariant Policy (bullet list)
 - Worktree header (`recommended` | `required` | `none` | absent)
+- Sprint slice (`- **Sprints:** N` header and `## Sprint N` sections). Absent → a single implicit sprint containing every cluster.
 - Cluster list, and per-cluster the tasks with: id, model, `+reviewer` flag, intra-cluster dependencies, full prompt, verification command
 
-### 3. Worktree setup
+### 3. Resume check (cross-session)
+
+A plan can outlive the session that executes it. This step finds out what is already done by looking at the repository, never by trusting a record. Full contract in `continuity.md`.
+
+1. Look for `docs/fsa-tools/continuity/<plan-slug>.md`. Absent → this is a first run; continue to step 4 unchanged. The absence is not an error.
+2. Present → read it for decisions, gotchas, and the sprint-progress hint. Then **re-observe rather than trust**: read `HEAD` and `git status --short`, and run the `verification:` command of every task in the plan. Exit 0 means the task is done. That exit code is the only completion signal — there is no stored completion list, by design.
+3. The `Sprint progress` section orders the scan so the likely-pending sprint is checked first. It never shortcuts it.
+4. Report divergences explicitly and escalate to the operator rather than deciding silently: a task the hint calls complete whose verification now fails, a dirty working tree, an unexpected branch.
+5. Dispatch only the tasks whose verification did not exit 0, in DAG order, stopping at the first sprint boundary that follows them.
+
+Re-running every verification is not free on a large plan. It is the price of having one source of truth instead of two, and verification commands are cheap by construction. If it proves slow, the fix is faster verification commands — not a cached completion list.
+
+### 4. Worktree setup
 
 Invoke `fsa-tools:worktree`, passing the plan slug and the worktree header value. Receive back either `(absolute path, branch name)` or a `none` signal.
 
-### 4. Hold the Definition of Done
+### 5. Hold the Definition of Done
 
-Keep the DoD command (from step 2) for the terminal gate in step 8. It is a shell command that returns exit 0 when the plan is complete.
+Keep the DoD command (from step 2) for the terminal gate in step 11. It is a shell command that returns exit 0 when the plan is complete.
 
-Do **not** try to invoke `/goal` — it is a native UI command, run by the operator, and cannot be called via the Skill tool from inside execution. The agent owns termination itself, by running the DoD command via Bash and gating on its exit code (step 8).
+Do **not** try to invoke `/goal` — it is a native UI command, run by the operator, and cannot be called via the Skill tool from inside execution. The agent owns termination itself, by running the DoD command via Bash and gating on its exit code (step 11).
 
-### 5. TaskCreate per task
+### 6. TaskCreate per task
 
 For each task in the plan:
 
@@ -44,7 +57,7 @@ For each task in the plan:
 - Model and prompt: from the plan
 - `addBlockedBy`: intra-cluster dependencies (task ids) plus inter-cluster dependencies (all task ids in the blocking cluster)
 
-### 6. Dispatch loop
+### 7. Dispatch loop
 
 See `dispatcher.md` for the full protocol.
 
@@ -56,7 +69,7 @@ Summary:
 4. For each result: run the verification command, optionally invoke `fsa-tools:review`, then `TaskUpdate(id, completed)`. See `verification-loop.md`.
 5. Re-poll on every `TaskUpdate(completed)` — completion may unblock further tasks.
 
-### 7. Spot-check after each wave
+### 8. Spot-check after each wave
 
 After every batch returns:
 
@@ -65,9 +78,31 @@ After every batch returns:
 - Run a partial DoD check if applicable (test suite, type check).
 - If anything looks off, escalate to the operator before launching the next wave.
 
-### 8. Definition of Done gate + global review
+### 9. Sprint boundary stop
 
-Once the dispatch loop reports all tasks complete, before declaring done:
+Sprint boundaries are binding, not advisory. A boundary the executor may ignore is decoration.
+
+After the last task of a **non-final** sprint completes:
+
+1. Run the per-wave spot-check (step 8).
+2. Write the continuity file (step 10).
+3. End the session with `Sprint N/M complete — open a fresh session to continue`.
+
+The global Definition of Done does not run here. It is global and single, so a partial run would be meaningless. `fsa-tools:finish-branch` is not invoked either — it runs only after the final sprint's Definition of Done passes.
+
+A plan with no sprint slice has exactly one sprint, which is also the final one, so this step never fires.
+
+### 10. Continuity write
+
+At the end of every run — sprint boundary stop, Definition of Done success, or escalation — append to `docs/fsa-tools/continuity/<plan-slug>.md` following `continuity.md`: decisions taken during execution, gotchas discovered, the sprint-progress hint, and one observed-run line (`tasks=`, `waves=`, `diff_lines=`, `duration=`).
+
+Persist only what the repository cannot re-derive. Never record git state, exit codes, file hashes, or a per-task completion list — those are re-observed at resume time (step 3).
+
+On escalation this is what makes the failure resumable instead of lost.
+
+### 11. Definition of Done gate + global review
+
+Once the dispatch loop reports all tasks complete, before declaring done: This gate runs on the final sprint only.
 
 1. Run the plan's Definition of Done command via Bash. This exit-code gate is the termination signal — the agent owns it (there is no native `/goal` auto-stop). If it returns exit ≠ 0, escalate to the operator with the output; do not declare done.
 2. Collect the full diff: `git diff <base-branch>...HEAD` (use `main` or `master` if no base branch is known).
@@ -75,7 +110,7 @@ Once the dispatch loop reports all tasks complete, before declaring done:
 4. If the reviewer raises blockers (correctness bugs, invariant violations, missed requirements): escalate to the operator with the reviewer's findings before proceeding. Do not auto-fix.
 5. If the reviewer is clean or raises only non-blocking findings: continue to the final report.
 
-### 9. Final report
+### 12. Final report
 
 After the global review passes:
 
@@ -87,5 +122,6 @@ After the global review passes:
 ## Internal references
 
 - Parse protocol: `parser.md`
+- Continuity protocol: `continuity.md`
 - Dispatch protocol: `dispatcher.md`
 - Verification and retry protocol: `verification-loop.md`

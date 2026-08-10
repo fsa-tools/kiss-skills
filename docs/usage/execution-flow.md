@@ -23,16 +23,26 @@ Extract from the plan (full protocol in `skills/execute-plans/parser.md`):
 - The Worktree header value (`recommended` | `required` | `none` | absent)
 - The cluster list, and per-cluster the tasks: id, model, `+reviewer` flag, intra-cluster dependencies, prompt, verification command
 - The inter-cluster dependencies from each cluster header
+- The optional sprint slice: `- **Sprints:** N` header plus `## Sprint N — <Theme>` sections wrapping clusters. Absent means a single implicit sprint containing every cluster.
 
-### 4. Worktree setup
+### 4. Resume check
 
-Invoke `fsa-tools:worktree`, passing the plan slug and the worktree header value. The helper either creates a worktree and returns `(path, branch)`, or skips when the header is `none`.
+Before worktree setup, look for `docs/fsa-tools/continuity/<plan-slug>.md`.
 
-### 5. Hold the Definition of Done
+- Absent: first run. Proceed to worktree setup.
+- Present: a prior session stopped here. Do not trust the file's claims — re-observe. Read HEAD and `git status --short`, then run the `verification:` command of every task in the plan.
+- Exit 0 is the only completion signal. There is no stored completion list to read instead.
+- The continuity file's `Sprint progress` section only tells you which sprint to scan first — it does not replace the scan.
 
-Keep the DoD command for the terminal gate in step 9. The agent does not invoke `/goal` — that is a native UI command only the operator can run. Termination is agent-owned: run the DoD command via Bash at the end and gate on its exit code.
+### 5. Worktree setup
 
-### 6. TaskCreate per task
+Invoke `fsa-tools:worktree`, passing the plan slug and the worktree header value. The helper either creates a worktree and returns `(path, branch)`, or skips when the header is `none`. An existing worktree on branch `fsa/<plan-slug>` is reused rather than recreated — this is what makes a second session possible.
+
+### 6. Hold the Definition of Done
+
+Keep the DoD command for the terminal gate in step 12. The agent does not invoke `/goal` — that is a native UI command only the operator can run. Termination is agent-owned: run the DoD command via Bash at the end and gate on its exit code.
+
+### 7. TaskCreate per task
 
 For each task in the plan:
 
@@ -41,7 +51,7 @@ For each task in the plan:
 - Prompt: from the plan
 - `addBlockedBy`: intra-cluster deps (task ids) plus inter-cluster deps (all tasks in the blocking cluster)
 
-### 7. Dispatch loop
+### 8. Dispatch loop
 
 See `skills/execute-plans/dispatcher.md` for the full protocol.
 
@@ -53,7 +63,7 @@ Summary:
 4. Per result: run the verification command, optionally invoke review, `TaskUpdate(id, completed)`.
 5. Re-poll: completion may unblock more tasks.
 
-### 8. Spot-check after each wave
+### 9. Spot-check after each wave
 
 After every dispatch batch returns:
 
@@ -62,9 +72,25 @@ After every dispatch batch returns:
 - Run a partial DoD check if applicable (test suite, type check).
 - If anything looks off, escalate to the operator before the next wave.
 
-### 9. Final report
+### 10. Sprint boundary stop
 
-Once all tasks are complete, run the DoD command via Bash. Exit ≠ 0 escalates to the operator; exit 0 means done:
+When the last task of a non-final sprint completes, stop before touching the next sprint.
+
+- Spot-check the wave as usual (step 9).
+- Write the continuity file (step 11).
+- End the session: `Sprint N/M complete — open a fresh session to continue.`
+- The Definition of Done does not run here. It is global and single — it only runs at the plan's true end, in step 12.
+
+### 11. Continuity write
+
+Append to `docs/fsa-tools/continuity/<plan-slug>.md` at the end of every run — boundary stop, DoD success, or escalation.
+
+- Holds: decisions made, gotchas hit, a `Sprint progress` hint, and one observed-run line.
+- Never holds: git state, exit codes, or a completion list — those are re-derived by the resume check (step 4), not stored.
+
+### 12. Final report
+
+Once all tasks in the final sprint are complete, run the DoD command via Bash — this gate applies only to the plan's last sprint; a non-final sprint stops at step 10 instead. Exit ≠ 0 escalates to the operator; exit 0 means done:
 
 - Summary: N tasks completed in M waves, models used.
 - Git state: branch, commit count, worktree path if any.
@@ -87,6 +113,36 @@ t=2    All tasks complete. Run the DoD command → exit 0. Done.
 ```
 
 Wall-clock: 2 waves versus 4 if serialized.
+
+### Resuming a sliced plan
+
+A plan declares `- **Sprints:** 2`. Sprint 1 has tasks 1.1, 1.2. Sprint 2 has 2.1, 2.2 (depends on sprint 1).
+
+Session 1:
+
+```
+t=0    Resume check: no continuity file. First run.
+       Worktree setup: new worktree on fsa/<plan-slug>.
+       TaskList → available = [1.1, 1.2]
+       Dispatch a single message with 2 Agent calls (parallel).
+       Both return. Verify both. TaskUpdate(1.1, completed). TaskUpdate(1.2, completed).
+t=1    Sprint 1's last wave just closed. Spot-check.
+       Write continuity file: decisions, gotchas, Sprint progress = "1/2 done".
+       End session: "Sprint 1/2 complete — open a fresh session to continue."
+```
+
+Session 2:
+
+```
+t=0    Resume check: continuity file present. Re-observe, don't trust it.
+       Read HEAD and `git status --short`.
+       Run verification for 1.1 and 1.2 → both exit 0. Nothing to re-dispatch.
+       Worktree setup: existing worktree on fsa/<plan-slug> is reused.
+t=1    TaskList → available = [2.1, 2.2]  (sprint 2, now unblocked)
+       Dispatch a single message with 2 Agent calls (parallel).
+       Both return. Verify, mark completed.
+t=2    All tasks complete, final sprint reached. Run the DoD command → exit 0. Done.
+```
 
 ## Spot-check protocol
 
