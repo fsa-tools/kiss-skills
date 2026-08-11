@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-08-11
+
+### Fixed
+
+- The sprint boundary stop is scoped to the dispatch loop instead of being stated as a condition on the task list. Step 6 already claimed its resume marking does not trigger the boundary, but step 9 did not say so: read literally, a resumed session that marks a whole finished sprint completed would stop at a boundary it had crossed in an earlier session, and end without dispatching anything.
+- The Definition of Done gate reads as a state condition — every task of the final sprint complete, whether the dispatch loop closed it or the resume marking did. It previously required the dispatch loop to report all tasks complete, so a resumed session that closed the final sprint entirely through the resume marking never reached the gate and the plan had no termination.
+- The consequence of missing sprint edges is stated precisely. The boundary stop does fire without them — once the last task of sprint N closes — but by then the sprint N+1 work has already landed, so the effect is a boundary enforced too late rather than one that never fires.
+- `execute-plans` step 6 says "gains no sprint edges" for a plan with one implicit sprint, matching the wording already used in the sibling docs.
+
 ## [0.4.0] — 2026-08-11
 
 ### Added
