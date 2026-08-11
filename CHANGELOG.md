@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-08-11
+
+### Added
+
+- Cross-session execution. A plan can be sliced into sprints (`- **Sprints:**` in the metadata plus `## Sprint N` sections); `execute-plans` stops at the end of every non-final sprint and the operator opens a fresh session to continue. A plan with no sprint slice yields a single implicit sprint, so nothing changes for it.
+- Resume check. On resume the skill re-observes the repository instead of trusting a record: a task is done exactly when its `verification:` command exits 0. The continuity file (`docs/fsa-tools/continuity/<plan-slug>.md`) persists only what the repository cannot re-derive — decisions taken, gotchas discovered, run metrics — never git state, exit codes, or a completion list.
+
+### Fixed
+
+- Sprint boundaries are now binding in the mechanism, not only in the prose. `TaskCreate` builds `addBlockedBy` from a third input — every task of the preceding sprint — so a sprint N+1 cluster declaring no dependency reaching back into sprint N is no longer available in the first wave. Enforcement lives at `TaskCreate`, which leaves the dispatch loop and the parser unchanged.
+- The resume check's "dispatch only the tasks whose verification did not exit 0" gained a consumer. Every task is created first (the edges need ids to reference), then the ones already observed passing are marked completed before the first poll. Without it a resumed session re-dispatched work whose verification already exits 0. This marking happens outside the dispatch loop, so it does not trigger the sprint boundary stop.
+
 ## [0.3.2] — 2026-07-07
 
 ### Fixed
