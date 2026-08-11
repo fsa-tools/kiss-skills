@@ -10,6 +10,7 @@
 - The Definition of Done gate reads as a state condition — every task of the final sprint complete, whether the dispatch loop closed it or the resume marking did. It previously required the dispatch loop to report all tasks complete, so a resumed session that closed the final sprint entirely through the resume marking never reached the gate and the plan had no termination.
 - The consequence of missing sprint edges is stated precisely. The boundary stop does fire without them — once the last task of sprint N closes — but by then the sprint N+1 work has already landed, so the effect is a boundary enforced too late rather than one that never fires.
 - `execute-plans` step 6 says "gains no sprint edges" for a plan with one implicit sprint, matching the wording already used in the sibling docs.
+- `.claude-plugin/marketplace.json` is back in sync. Both version fields had been left at `0.1.0` since the first release — four bumps never reached the file — and its plugin description still advertised `/goal termination`, the mechanism the project replaced with the agent-owned, exit-code-gated gate.
 
 ## [0.4.0] — 2026-08-11
 

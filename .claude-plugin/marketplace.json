@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Parallelism-first skill suite for Claude Code",
-    "version": "0.1.0"
+    "version": "0.4.1"
   },
   "plugins": [
     {
       "name": "fsa-tools",
-      "description": "Parallelism-first skill suite — write plans as a DAG of clusters, execute via parallel subagent dispatch with /goal termination.",
-      "version": "0.1.0",
+      "description": "Parallelism-first skill suite — write plans as a DAG of clusters, execute via parallel subagent dispatch with exit-code-gated termination.",
+      "version": "0.4.1",
       "source": "./",
       "category": "productivity",
       "homepage": "https://github.com/fsa-tools/kiss-skills",
