@@ -51,7 +51,7 @@ For each task in the plan:
 - Prompt: from the plan
 - `addBlockedBy`: intra-cluster deps (task ids), inter-cluster deps (all tasks in the blocking cluster), and sprint deps (every task of the preceding sprint)
 
-Sprint edges are what make a boundary binding: without them the eager poll in step 8 ships sprint N+1's cluster in the very first wave whenever it declares no inter-cluster dependency reaching back into sprint N, and the boundary stop in step 10 never fires. A plan with one implicit sprint gains no sprint edges — it behaves exactly as before.
+Sprint edges are what make a boundary binding: without them the eager poll in step 8 ships sprint N+1's cluster in the very first wave whenever it declares no inter-cluster dependency reaching back into sprint N, and the boundary stop in step 10 fires only once sprint N's last task closes — by which point the sprint N+1 work has already landed, too late to bind anything. A plan with one implicit sprint gains no sprint edges — it behaves exactly as before.
 
 Create every task first, then mark the ones the resume check (step 4) already saw pass as `TaskUpdate(id, completed)`, all before the first poll — the edges need ids to reference, so every task is created even when most are already done. This is what consumes the resume check's "dispatch only what failed." On a first run it marks nothing.
 
@@ -80,7 +80,7 @@ After every dispatch batch returns:
 
 ### 10. Sprint boundary stop
 
-When the last task of a non-final sprint completes, stop before touching the next sprint.
+When the dispatch loop (step 8) completes the last task of a non-final sprint, stop before touching the next sprint. The trigger is a dispatch-loop event, not a condition on the task list — step 7's resume marking does not fire it.
 
 - Spot-check the wave as usual (step 9).
 - Write the continuity file (step 11).

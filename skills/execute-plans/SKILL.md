@@ -55,7 +55,7 @@ For each task in the plan:
 
 - Name: `Cluster N / Task N.M [model]` — e.g. `Cluster 1 / Task 1.1 [sonnet]`
 - Model and prompt: from the plan
-- `addBlockedBy`: intra-cluster dependencies (task ids), inter-cluster dependencies (all task ids in the blocking cluster), and sprint dependencies — every task of the preceding sprint. The sprint edges are what make a boundary binding: without them step 7's eager poll ships a sprint N+1 cluster whose `Inter-cluster dependency:` is `none` in the first wave, and the boundary declared in step 9 never fires. A plan with one implicit sprint gains no edges, so nothing changes for it.
+- `addBlockedBy`: intra-cluster dependencies (task ids), inter-cluster dependencies (all task ids in the blocking cluster), and sprint dependencies — every task of the preceding sprint. The sprint edges are what make a boundary binding: without them step 7's eager poll ships a sprint N+1 cluster whose `Inter-cluster dependency:` is `none` in the first wave, and the boundary declared in step 9 fires only once sprint N's last task closes — by which point the sprint N+1 work has already landed, too late to bind anything. A plan with one implicit sprint gains no sprint edges, so nothing changes for it.
 
 **Then, before the first poll.** For every task the resume check (step 3) observed passing, `TaskUpdate(id, completed)`. Create first, mark second: the sprint and cluster edges need task ids to reference, so every task in the plan is created even when most are already done. Marking them completed before step 7's first poll is what consumes the resume filter — without it the loop re-dispatches work whose verification already exits 0.
 
@@ -88,11 +88,13 @@ After every batch returns:
 
 Sprint boundaries are binding, not advisory. A boundary the executor may ignore is decoration.
 
-After the last task of a **non-final** sprint completes:
+When the dispatch loop (step 7) completes the last task of a **non-final** sprint:
 
 1. Run the per-wave spot-check (step 8).
 2. Write the continuity file (step 10).
 3. End the session with `Sprint N/M complete — open a fresh session to continue`.
+
+The trigger is an event in the dispatch loop, not a condition on the task list. Completions produced by step 6's resume marking do not fire it: a resumed session that opens with a whole sprint already marked complete crossed that boundary in an earlier session, and must dispatch the next sprint rather than stop at it again.
 
 The global Definition of Done does not run here. It is global and single, so a partial run would be meaningless. `fsa-tools:finish-branch` is not invoked either — it runs only after the final sprint's Definition of Done passes.
 
@@ -108,7 +110,7 @@ On escalation this is what makes the failure resumable instead of lost.
 
 ### 11. Definition of Done gate + global review
 
-Once the dispatch loop reports all tasks complete, before declaring done: This gate runs on the final sprint only.
+Once every task of the final sprint is complete — whether the dispatch loop closed it or step 6's resume marking did — run this gate before declaring done.
 
 1. Run the plan's Definition of Done command via Bash. This exit-code gate is the termination signal — the agent owns it (there is no native `/goal` auto-stop). If it returns exit ≠ 0, escalate to the operator with the output; do not declare done.
 2. Collect the full diff: `git diff <base-branch>...HEAD` (use `main` or `master` if no base branch is known).
