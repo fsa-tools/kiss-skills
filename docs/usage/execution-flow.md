@@ -49,7 +49,13 @@ For each task in the plan:
 - Name: `Cluster N / Task N.M`
 - Model: from the plan
 - Prompt: from the plan
-- `addBlockedBy`: intra-cluster deps (task ids) plus inter-cluster deps (all tasks in the blocking cluster)
+- `addBlockedBy`: intra-cluster deps (task ids), inter-cluster deps (all tasks in the blocking cluster), and sprint deps (every task of the preceding sprint)
+
+Sprint edges are what make a boundary binding: without them the eager poll in step 8 ships sprint N+1's cluster in the very first wave whenever it declares no inter-cluster dependency reaching back into sprint N, and the boundary stop in step 10 never fires. A plan with one implicit sprint gains no sprint edges — it behaves exactly as before.
+
+Create every task first, then mark the ones the resume check (step 4) already saw pass as `TaskUpdate(id, completed)`, all before the first poll — the edges need ids to reference, so every task is created even when most are already done. This is what consumes the resume check's "dispatch only what failed." On a first run it marks nothing.
+
+That marking happens outside the dispatch loop, so a resumed session that marks a whole finished sprint completed has not triggered that sprint's boundary stop (step 10) — it passed that boundary in an earlier session.
 
 ### 8. Dispatch loop
 
@@ -136,9 +142,11 @@ Session 2:
 ```
 t=0    Resume check: continuity file present. Re-observe, don't trust it.
        Read HEAD and `git status --short`.
-       Run verification for 1.1 and 1.2 → both exit 0. Nothing to re-dispatch.
+       Run verification for 1.1 and 1.2 → both exit 0.
        Worktree setup: existing worktree on fsa/<plan-slug> is reused.
-t=1    TaskList → available = [2.1, 2.2]  (sprint 2, now unblocked)
+       TaskCreate all four tasks, addBlockedBy wired — sprint deps included.
+       TaskUpdate(1.1, completed). TaskUpdate(1.2, completed). Before the first poll.
+t=1    TaskList → available = [2.1, 2.2]  (sprint deps satisfied, sprint 2 unblocked)
        Dispatch a single message with 2 Agent calls (parallel).
        Both return. Verify, mark completed.
 t=2    All tasks complete, final sprint reached. Run the DoD command → exit 0. Done.

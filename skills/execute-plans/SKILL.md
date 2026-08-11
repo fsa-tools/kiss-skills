@@ -55,7 +55,13 @@ For each task in the plan:
 
 - Name: `Cluster N / Task N.M [model]` — e.g. `Cluster 1 / Task 1.1 [sonnet]`
 - Model and prompt: from the plan
-- `addBlockedBy`: intra-cluster dependencies (task ids) plus inter-cluster dependencies (all task ids in the blocking cluster)
+- `addBlockedBy`: intra-cluster dependencies (task ids), inter-cluster dependencies (all task ids in the blocking cluster), and sprint dependencies — every task of the preceding sprint. The sprint edges are what make a boundary binding: without them step 7's eager poll ships a sprint N+1 cluster whose `Inter-cluster dependency:` is `none` in the first wave, and the boundary declared in step 9 never fires. A plan with one implicit sprint gains no edges, so nothing changes for it.
+
+**Then, before the first poll.** For every task the resume check (step 3) observed passing, `TaskUpdate(id, completed)`. Create first, mark second: the sprint and cluster edges need task ids to reference, so every task in the plan is created even when most are already done. Marking them completed before step 7's first poll is what consumes the resume filter — without it the loop re-dispatches work whose verification already exits 0.
+
+This marking happens outside the dispatch loop. It does not trigger the sprint boundary stop of step 9, which fires only on a completion the dispatch loop produced. A resumed session that marks a whole finished sprint completed here has not reached that sprint's boundary — it passed it in an earlier session.
+
+On a first run the resume check found nothing and this marks nothing.
 
 ### 7. Dispatch loop
 
